@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Agent - User Panel{% endblock %}
+
+{% block content %}
+<div class="p-6 lg:p-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold text-gray-800">AI Agent Configuration</h1>
+        <p class="text-gray-500 mt-2">Configure your AI agent settings and get your webhook URL</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Webhook URL Card -->
+        <div class="lg:col-span-1">
+            <div
+                class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-2xl p-6 text-white sticky top-6">
+                <div class="flex items-center space-x-3 mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1">
+                        </path>
+                    </svg>
+                    <h2 class="text-xl font-bold">Your Webhook URL</h2>
+                </div>
+
+                <div class="bg-white bg-opacity-20 backdrop-blur-lg rounded-lg p-4 mb-4">
+                    <p class="text-xs font-medium mb-2 opacity-90">Webhook Endpoint</p>
+                    <p class="text-sm font-mono break-all" id="webhook-url">{{ webhook_url }}</p>
+                </div>
+
+                <button onclick="copyWebhookUrl()"
+                    class="w-full bg-white text-blue-600 font-semibold py-3 px-6 rounded-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    <span id="copy-btn-text">Copy URL</span>
+                </button>
+
+                <div class="mt-4 p-4 bg-white bg-opacity-10 backdrop-blur-lg rounded-lg">
+                    <p class="text-xs opacity-90">
+                        <strong>Note:</strong> This webhook URL is unique to your account. Use it to connect your
+                        Facebook page to the AI agent.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Form -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">AI Settings</h2>
+
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Facebook Page ID
+                            <span class="text-gray-400 font-normal">(Required)</span>
+                        </label>
+                        {{ form.facebook_page_id }}
+                        {% if form.facebook_page_id.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.facebook_page_id.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-500">
+                            Enter your Facebook Page ID. You can find this in your Facebook Page settings.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Facebook Page Api key
+                            <span class="text-gray-400 font-normal">(Required)</span>
+                        </label>
+                        {{ form.facebook_page_api }}
+                        {% if form.facebook_page_api.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.facebook_page_api.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-500">
+                            Enter your Facebook Page ID. You can find this in your Facebook Page settings.
+                        </p>
+                    </div>
+
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            AI System Prompt
+                            <span class="text-gray-400 font-normal">(Optional)</span>
+                        </label>
+                        {{ form.system_prompt }}
+                        {% if form.system_prompt.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.system_prompt.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-500">
+                            Define how your AI agent should behave and respond. This is the system prompt that guides
+                            the AI's personality and responses.
+                        </p>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div class="text-sm text-blue-800">
+                                <p class="font-semibold mb-1">Configuration Tips</p>
+                                <ul class="list-disc list-inside space-y-1 text-xs">
+                                    <li>Make your system prompt clear and specific</li>
+                                    <li>Define the AI's role, tone, and boundaries</li>
+                                    <li>Test your configuration after saving</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-4 pt-4">
+                        <button type="submit"
+                            class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+                            Save Configuration
+                        </button>
+                        <a href="{% url 'dashboard' %}"
+                            class="flex-1 text-center bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg hover:bg-gray-300 transition-all duration-200">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">How to Use Your Webhook</h3>
+                <ol class="space-y-3 text-sm text-gray-700">
+                    <li class="flex items-start space-x-3">
+                        <span
+                            class="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                        <span>Copy your webhook URL from the card on the left</span>
+                    </li>
+                    <li class="flex items-start space-x-3">
+                        <span
+                            class="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                        <span>Configure your Facebook Page ID and AI system prompt</span>
+                    </li>
+                    <li class="flex items-start space-x-3">
+                        <span
+                            class="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                        <span>Add the webhook URL to your Facebook Page settings</span>
+                    </li>
+                    <li class="flex items-start space-x-3">
+                        <span
+                            class="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                        <span>Your AI agent will start responding to messages automatically</span>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyWebhookUrl() {
+        const webhookUrl = document.getElementById('webhook-url').textContent;
+        const copyBtnText = document.getElementById('copy-btn-text');
+
+        navigator.clipboard.writeText(webhookUrl).then(function () {
+            copyBtnText.textContent = 'Copied!';
+            setTimeout(function () {
+                copyBtnText.textContent = 'Copy URL';
+            }, 2000);
+        }, function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    }
+</script>
+{% endblock %}
