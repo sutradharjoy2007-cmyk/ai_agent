@@ -12,8 +12,11 @@ def api_get_user_config(request, admin_password, email_prefix, field):
     
     Fields available:
     - fb_page_id: Returns Facebook Page ID
+    - fb_page_api: Returns Facebook Page API key
     - system_prompt: Returns AI system prompt
     - webhook_url: Returns webhook URL
+    - ai_agent_status: Returns whether AI agent is on or off
+    - block_post_ids: Returns list of blocked Facebook post IDs
     - all: Returns all configuration as JSON
     """
     
@@ -50,21 +53,41 @@ def api_get_user_config(request, admin_password, email_prefix, field):
             return HttpResponse(ai_config.get_webhook_url(), content_type='text/plain')
         
         elif field == 'fb_page_api':
-            return HttpResponse(ai_config.facebook_page_api or '', content_type='text/plain')    
+            return HttpResponse(ai_config.facebook_page_api or '', content_type='text/plain')
+        
+        elif field == 'ai_agent_status':
+            # Return 'on' or 'off' directly as requested, or JSON if needed. 
+            # Based on user request: "i will get api response whther this agent off or on"
+            # Let's return JSON for clarity but simple text is also an option.
+            # User said: "i will get api response whther this agent off or on" -> implies status text
+            status = 'on' if ai_config.is_active else 'off'
+            return JsonResponse({'status': status})
+        
+        elif field == 'block_post_ids':
+            # User said: "i will get all the list of block FB post ids"
+            blocked_ids = ai_config.get_blocked_post_ids_list()
+            return JsonResponse({'blocked_post_ids': blocked_ids})
         
         elif field == 'all':
+            blocked_ids = ai_config.get_blocked_post_ids_list()
             data = {
                 'email': user.email,
                 'email_prefix': user.get_email_prefix(),
+                'ai_agent_status': 'on' if ai_config.is_active else 'off',
+                'is_active': ai_config.is_active,
                 'fb_page_id': ai_config.facebook_page_id or '',
                 'fb_page_api': ai_config.facebook_page_api or '',
                 'system_prompt': ai_config.system_prompt or '',
                 'webhook_url': ai_config.get_webhook_url(),
+                'blocked_post_ids': blocked_ids,
             }
             return JsonResponse(data)
         
         else:
-            return HttpResponse('Invalid field. Available fields: fb_page_id, system_prompt, webhook_url, all', status=400)
+            return HttpResponse(
+                'Invalid field. Available fields: fb_page_id, fb_page_api, system_prompt, webhook_url, ai_agent_status, block_post_ids, all',
+                status=400
+            )
     
     except Exception as e:
         return HttpResponse(f'Error: {str(e)}', status=500)

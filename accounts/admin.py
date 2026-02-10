@@ -1,5 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.utils.html import format_html
+from django.core.mail import send_mail
+from django.conf import settings
 from .models import CustomUser, UserProfile, AIAgentConfig
 
 
@@ -45,13 +48,43 @@ class UserProfileAdmin(admin.ModelAdmin):
     
     @admin.action(description="✅ Approve KYC Verification")
     def approve_kyc(self, request, queryset):
-        updated = queryset.filter(kyc_status='PENDING').update(kyc_status='VERIFIED')
-        self.message_user(request, f"{updated} user(s) KYC approved successfully.")
+        updated_count = queryset.update(kyc_status='VERIFIED')
+        
+        # Send approval emails
+        for profile in queryset:
+            try:
+                send_mail(
+                    subject='KYC Verification Approved',
+                    message=f'Dear {profile.name},\n\nYour KYC verification has been approved. You now have full access to all AI Agent features.\n\nBest regards,\nAI Agent Team',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[profile.user.email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                print(f"Failed to send approval email to {profile.user.email}: {e}")
+
+        self.message_user(request, f"{updated_count} users have been verified.")
+    approve_kyc.short_description = "✅ Approve KYC Verification"
     
     @admin.action(description="❌ Reject KYC Verification")
     def reject_kyc(self, request, queryset):
-        updated = queryset.filter(kyc_status='PENDING').update(kyc_status='REJECTED')
-        self.message_user(request, f"{updated} user(s) KYC rejected.")
+        updated_count = queryset.update(kyc_status='REJECTED')
+        
+        # Send rejection emails
+        for profile in queryset:
+            try:
+                send_mail(
+                    subject='KYC Verification Rejected',
+                    message=f'Dear {profile.name},\n\nYour KYC document was rejected. Please log in to your profile and upload a valid document (NID or Passport).\n\nBest regards,\nAI Agent Team',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[profile.user.email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                print(f"Failed to send rejection email to {profile.user.email}: {e}")
+
+        self.message_user(request, f"{updated_count} users have been rejected.")
+    reject_kyc.short_description = "❌ Reject KYC Verification"
     
     def assign_days(self, request, queryset, days, package_name):
         from django.utils import timezone

@@ -98,10 +98,19 @@ class KYCUploadForm(forms.ModelForm):
 
 class AIAgentConfigForm(forms.ModelForm):
     """Form for AI agent configuration"""
+    is_active = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'sr-only peer',
+            'id': 'ai-toggle'
+        })
+    )
+    
     class Meta:
         model = AIAgentConfig
-        fields = ['facebook_page_id', 'facebook_page_api', 'system_prompt']
+        fields = ['is_active', 'facebook_page_id', 'facebook_page_api', 'system_prompt', 'blocked_post_ids']
         widgets = {
+            # is_active widget is defined above to override field properties
             'facebook_page_id': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200',
                 'placeholder': 'Enter your Facebook Page ID'
@@ -116,5 +125,6 @@ class AIAgentConfigForm(forms.ModelForm):
                 'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200',
                 'placeholder': 'Enter your AI system prompt',
                 'rows': 6
-            })
+            }),
+            'blocked_post_ids': forms.HiddenInput()
         }

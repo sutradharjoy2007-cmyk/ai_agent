@@ -143,3 +143,12 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # API Admin Password (for accessing user AI config via API)
 API_ADMIN_PASSWORD = 'metasoul1$'
+
+# Email Configuration (Console Backend for Development)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_TLS = False
+DEFAULT_FROM_EMAIL = 'noreply@aiagent.com'
