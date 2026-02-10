@@ -50,6 +50,17 @@ class UserProfile(models.Model):
     name = models.CharField(max_length=255, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     mobile_number = models.CharField(max_length=20, blank=True)
+    home_address = models.TextField(blank=True)
+    
+    # KYC Fields
+    KYC_STATUS_CHOICES = (
+        ('NONE', 'Not Submitted'),
+        ('PENDING', 'Under Review'),
+        ('VERIFIED', 'Verified'),
+        ('REJECTED', 'Rejected'),
+    )
+    kyc_document = models.ImageField(upload_to='kyc_documents/', blank=True, null=True)
+    kyc_status = models.CharField(max_length=20, choices=KYC_STATUS_CHOICES, default='NONE')
     
     # Subscription fields
     subscription_expiry = models.DateTimeField(null=True, blank=True)

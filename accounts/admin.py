@@ -24,8 +24,34 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'subscription_expiry', 'package_name']
-    actions = ['assign_7_days', 'assign_15_days', 'assign_30_days']
+    list_display = ['user', 'kyc_status', 'kyc_document_link', 'subscription_expiry', 'package_name']
+    list_filter = ['kyc_status', 'package_name']
+    actions = ['approve_kyc', 'reject_kyc', 'assign_7_days', 'assign_15_days', 'assign_30_days']
+    readonly_fields = ['kyc_document_preview']
+    
+    def kyc_document_link(self, obj):
+        from django.utils.html import format_html
+        if obj.kyc_document:
+            return format_html('<a href="{}" target="_blank">View Document</a>', obj.kyc_document.url)
+        return "No document"
+    kyc_document_link.short_description = "KYC Document"
+    
+    def kyc_document_preview(self, obj):
+        from django.utils.html import format_html
+        if obj.kyc_document:
+            return format_html('<img src="{}" style="max-width:400px; max-height:300px;" />', obj.kyc_document.url)
+        return "No document uploaded"
+    kyc_document_preview.short_description = "KYC Document Preview"
+    
+    @admin.action(description="✅ Approve KYC Verification")
+    def approve_kyc(self, request, queryset):
+        updated = queryset.filter(kyc_status='PENDING').update(kyc_status='VERIFIED')
+        self.message_user(request, f"{updated} user(s) KYC approved successfully.")
+    
+    @admin.action(description="❌ Reject KYC Verification")
+    def reject_kyc(self, request, queryset):
+        updated = queryset.filter(kyc_status='PENDING').update(kyc_status='REJECTED')
+        self.message_user(request, f"{updated} user(s) KYC rejected.")
     
     def assign_days(self, request, queryset, days, package_name):
         from django.utils import timezone

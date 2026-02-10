@@ -80,7 +80,8 @@
 
             {% if profile.subscription_expiry %}
             <div class="mt-4">
-                <p class="text-sm text-gray-600 mb-1">Expires on: <span class="font-semibold">{{profile.subscription_expiry|date:"M d, Y" }}</span></p>
+                <p class="text-sm text-gray-600 mb-1">Expires on: <span
+                        class="font-semibold">{{profile.subscription_expiry|date:"M d, Y" }}</span></p>
 
                 <!-- Time remaining calculation logic roughly -->
                 <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
@@ -114,6 +115,42 @@
             <p class="mt-4 text-green-600 font-medium text-sm">
                 ✓ Verified
             </p>
+        </div>
+
+        <!-- KYC Verification Status -->
+        <div
+            class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-shadow duration-300 border-l-4 {% if profile.kyc_status == 'VERIFIED' %}border-green-500{% elif profile.kyc_status == 'PENDING' %}border-yellow-500{% elif profile.kyc_status == 'REJECTED' %}border-red-500{% else %}border-gray-400{% endif %}">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-medium">KYC Verification</p>
+                    <h3
+                        class="text-2xl font-bold mt-2 {% if profile.kyc_status == 'VERIFIED' %}text-green-600{% elif profile.kyc_status == 'PENDING' %}text-yellow-600{% elif profile.kyc_status == 'REJECTED' %}text-red-600{% else %}text-gray-600{% endif %}">
+                        {% if profile.kyc_status == 'VERIFIED' %}Verified ✓
+                        {% elif profile.kyc_status == 'PENDING' %}Under Review
+                        {% elif profile.kyc_status == 'REJECTED' %}Rejected
+                        {% else %}Not Submitted
+                        {% endif %}
+                    </h3>
+                </div>
+                <div
+                    class="p-3 rounded-full {% if profile.kyc_status == 'VERIFIED' %}bg-green-100{% elif profile.kyc_status == 'PENDING' %}bg-yellow-100{% elif profile.kyc_status == 'REJECTED' %}bg-red-100{% else %}bg-gray-100{% endif %}">
+                    <svg class="w-8 h-8 {% if profile.kyc_status == 'VERIFIED' %}text-green-600{% elif profile.kyc_status == 'PENDING' %}text-yellow-600{% elif profile.kyc_status == 'REJECTED' %}text-red-600{% else %}text-gray-500{% endif %}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            {% if profile.kyc_status != 'VERIFIED' %}
+            <a href="{% url 'profile' %}"
+                class="mt-4 inline-block {% if profile.kyc_status == 'REJECTED' %}text-red-600 hover:text-red-800{% elif profile.kyc_status == 'PENDING' %}text-yellow-600 hover:text-yellow-800{% else %}text-blue-600 hover:text-purple-600{% endif %} font-medium text-sm transition-colors duration-200">
+                {% if profile.kyc_status == 'PENDING' %}View Status →{% elif profile.kyc_status == 'REJECTED' %}Resubmit
+                KYC →{% else %}Complete KYC →{% endif %}
+            </a>
+            {% else %}
+            <p class="mt-4 text-green-600 font-medium text-sm">✓ Full access granted</p>
+            {% endif %}
         </div>
     </div>
 

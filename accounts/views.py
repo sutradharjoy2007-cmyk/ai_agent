@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm, AIAgentConfigForm
+from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm, AIAgentConfigForm, KYCUploadForm
 from .models import UserProfile, AIAgentConfig
 
 
@@ -15,8 +15,11 @@ def register_view(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            full_name = form.cleaned_data.get('full_name', '')
+            user.first_name = full_name
+            user.save()
             # Create associated profile and AI config
-            UserProfile.objects.create(user=user)
+            UserProfile.objects.create(user=user, name=full_name)
             AIAgentConfig.objects.create(user=user)
             login(request, user)
             messages.success(request, 'Account created successfully!')
@@ -75,20 +78,44 @@ def profile_view(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully!')
-            return redirect('profile')
+        if 'kyc_submit' in request.POST:
+            # Handle KYC document upload
+            kyc_form = KYCUploadForm(request.POST, request.FILES, instance=profile)
+            if kyc_form.is_valid():
+                kyc_profile = kyc_form.save(commit=False)
+                kyc_profile.kyc_status = 'PENDING'
+                kyc_profile.save()
+                messages.success(request, 'KYC document submitted successfully! Your verification is under review.')
+                return redirect('profile')
+            form = UserProfileForm(instance=profile)
+        else:
+            # Handle profile update
+            form = UserProfileForm(request.POST, request.FILES, instance=profile)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('profile')
+            kyc_form = KYCUploadForm(instance=profile)
     else:
         form = UserProfileForm(instance=profile)
     
-    return render(request, 'accounts/profile.html', {'form': form, 'profile': profile})
+    kyc_form = KYCUploadForm(instance=profile)
+    
+    return render(request, 'accounts/profile.html', {
+        'form': form,
+        'kyc_form': kyc_form,
+        'profile': profile
+    })
 
 
 @login_required
 def ai_agent_view(request):
     """Display and update AI agent configuration"""
+    # KYC verification check
+    profile = getattr(request.user, 'profile', None)
+    if not profile or profile.kyc_status != 'VERIFIED':
+        return redirect('kyc_required')
+    
     ai_config, created = AIAgentConfig.objects.get_or_create(user=request.user)
     
     if request.method == 'POST':
@@ -107,6 +134,13 @@ def ai_agent_view(request):
         'webhook_url': webhook_url,
         'ai_config': ai_config
     })
+
+
+@login_required
+def kyc_required_view(request):
+    """Display KYC required page when user hasn't completed verification"""
+    profile = getattr(request.user, 'profile', None)
+    return render(request, 'accounts/kyc_required.html', {'profile': profile})
 
 
 @login_required
