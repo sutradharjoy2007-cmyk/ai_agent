@@ -123,10 +123,11 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
+
                     {% for row in data %}
                     <tr class="hover:bg-gray-50 transition-colors duration-150">
                         {% for cell in row %}
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        <td class="px-6 py-4 text-sm text-gray-700 whitespace-normal break-words max-w-xs">
                             {{ cell }}
                         </td>
                         {% endfor %}
