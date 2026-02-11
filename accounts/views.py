@@ -54,9 +54,25 @@ def report_view(request):
                 mask = df.astype(str).apply(lambda x: x.str.contains(query, case=False, na=False)).any(axis=1)
                 df = df[mask]
                 
+
             columns = df.columns.tolist()
             df = df.iloc[::-1] # Reverse payload to show most recent at top
             df = df.fillna('') # Replace NaN with empty string
+            
+            # Handle Excel Download
+            if request.GET.get('download') == 'true':
+                from django.http import HttpResponse
+                
+                # Create Excel file in memory
+                excel_buffer = io.BytesIO()
+                with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                    df.to_excel(writer, index=False, sheet_name='Report')
+                
+                excel_buffer.seek(0)
+                response = HttpResponse(excel_buffer.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                response['Content-Disposition'] = 'attachment; filename="report.xlsx"'
+                return response
+            
             data_list = df.values.tolist()
             
             # Pagination
