@@ -8,8 +8,11 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('profile/', views.profile_view, name='profile'),
+
     path('ai-agent/', views.ai_agent_view, name='ai_agent'),
+    path('report/', views.report_view, name='report'),
     path('kyc-required/', views.kyc_required_view, name='kyc_required'),
+
     
     # API endpoints
     path('api/user/<str:admin_password>/<str:email_prefix>/<str:field>/', api_get_user_config, name='api_user_config'),

@@ -4,7 +4,68 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm, AIAgentConfigForm, KYCUploadForm
+
 from .models import UserProfile, AIAgentConfig
+import pandas as pd
+import io
+import requests
+
+
+@login_required
+def report_view(request):
+    """Fetch and display report from Google Sheet"""
+    # Ensure AI config exists
+    ai_config, created = AIAgentConfig.objects.get_or_create(user=request.user)
+    
+    # Handle Sheet ID update
+    if request.method == 'POST' and 'google_sheet_id' in request.POST:
+        new_id = request.POST.get('google_sheet_id', '').strip()
+        if new_id:
+            ai_config.google_sheet_id = new_id
+            ai_config.save()
+            messages.success(request, 'Google Sheet ID updated successfully!')
+            return redirect('report')
+            
+    sheet_id = ai_config.google_sheet_id
+    
+    data = []
+    columns = []
+    error = None
+    
+    if sheet_id:
+        url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+        
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            
+            # Read into pandas DataFrame with UTF-8 encoding
+            # Use content (bytes) and BytesIO for better encoding handling
+            df = pd.read_csv(io.BytesIO(response.content), encoding='utf-8')
+            
+            # Filter logic if requested
+            query = request.GET.get('q', '').strip()
+            if query:
+                # Simple case-insensitive search across all columns
+                mask = df.astype(str).apply(lambda x: x.str.contains(query, case=False, na=False)).any(axis=1)
+                df = df[mask]
+                
+            columns = df.columns.tolist()
+            df = df.iloc[::-1] # Reverse payload to show most recent at top
+            df = df.fillna('') # Replace NaN with empty string
+            data = df.values.tolist()
+            
+        except Exception as e:
+            error = f"Failed to load report data: {str(e)}"
+    
+    return render(request, 'accounts/report.html', {
+        'data': data,
+        'columns': columns,
+        'error': error,
+        'query': request.GET.get('q', ''),
+        'google_sheet_id': sheet_id
+    })
+
 
 
 def register_view(request):

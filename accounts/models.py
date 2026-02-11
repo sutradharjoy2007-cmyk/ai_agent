@@ -83,7 +83,9 @@ class AIAgentConfig(models.Model):
     is_active = models.BooleanField(default=True, help_text='Turn AI agent on/off')
     facebook_page_id = models.CharField(max_length=2000, blank=True)
     facebook_page_api= models.CharField(max_length=2000, blank=True)
+
     system_prompt = models.TextField(blank=True)
+    google_sheet_id = models.CharField(max_length=200, blank=True, help_text='Google Sheet ID for reports')
     blocked_post_ids = models.TextField(blank=True, help_text='Newline-separated list of Facebook post IDs to block')
     
     def __str__(self):
