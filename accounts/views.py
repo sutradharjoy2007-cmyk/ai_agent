@@ -242,6 +242,57 @@ def ai_agent_view(request):
 
 
 @login_required
+def feed_view(request):
+    """Display Facebook Page feed (posts) using the Graph API"""
+    page_name = None
+    posts = []
+    error = None
+
+    try:
+        ai_config = AIAgentConfig.objects.get(user=request.user)
+        page_id = ai_config.facebook_page_id
+        access_token = ai_config.facebook_page_api
+
+        if not page_id or not access_token:
+            error = 'Facebook Page ID or API key is missing. Please configure your AI Agent first.'
+        else:
+            # Fetch page name
+            try:
+                name_resp = requests.get(
+                    f"https://graph.facebook.com/v24.0/{page_id}",
+                    params={'fields': 'name', 'access_token': access_token}
+                )
+                if name_resp.status_code == 200:
+                    page_name = name_resp.json().get('name', 'Unknown Page')
+            except Exception:
+                page_name = 'Unknown Page'
+
+            # Fetch page feed
+            feed_resp = requests.get(
+                f"https://graph.facebook.com/v24.0/{page_id}/feed",
+                params={'access_token': access_token, 'fields': 'id,message,created_time,full_picture,permalink_url'}
+            )
+
+            if feed_resp.status_code == 200:
+                feed_data = feed_resp.json()
+                posts = feed_data.get('data', [])
+            else:
+                err_data = feed_resp.json()
+                error = err_data.get('error', {}).get('message', 'Failed to fetch feed.')
+
+    except AIAgentConfig.DoesNotExist:
+        error = 'AI Agent configuration not found. Please set it up first.'
+    except Exception as e:
+        error = f'An error occurred: {str(e)}'
+
+    return render(request, 'accounts/feed.html', {
+        'page_name': page_name,
+        'posts': posts,
+        'error': error,
+    })
+
+
+@login_required
 def delete_comment_view(request):
     """Delete a Facebook comment using the Graph API"""
     if request.method == 'POST':
