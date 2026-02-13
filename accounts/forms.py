@@ -34,6 +34,14 @@ class CustomUserCreationForm(UserCreationForm):
             'placeholder': 'Confirm password'
         })
     )
+    phone_number = forms.CharField(
+        max_length=20,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200',
+            'placeholder': 'Enter your phone number'
+        })
+    )
     
     class Meta:
         model = CustomUser
@@ -61,7 +69,7 @@ class UserProfileForm(forms.ModelForm):
     """Form for updating user profile"""
     class Meta:
         model = UserProfile
-        fields = ['name', 'profile_picture', 'mobile_number', 'home_address']
+        fields = ['name', 'profile_picture', 'mobile_number', 'home_address', 'business_info']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200',
@@ -75,6 +83,11 @@ class UserProfileForm(forms.ModelForm):
                 'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200',
                 'placeholder': 'Enter your home address',
                 'rows': 3
+            }),
+            'business_info': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200',
+                'placeholder': 'Tell us about your business/Facebook page — what you sell, your services, target audience, etc.',
+                'rows': 5
             }),
             'profile_picture': forms.FileInput(attrs={
                 'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200',

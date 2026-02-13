@@ -122,6 +122,50 @@
                         <p class="mt-2 text-xs text-gray-500">Upload a profile picture (JPG, PNG, max 5MB)</p>
                     </div>
 
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            About Your Business / Facebook Page
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.business_info }}
+                        {% if form.business_info.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.business_info.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-500">Describe your business, services, target audience, and
+                            Facebook page. This helps us optimize your AI agent.</p>
+                    </div>
+
+                    {% if profile.business_info %}
+                    <!-- Privacy Policy URL -->
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-gray-800 mb-1">Your Public Privacy Policy</p>
+                                <div class="flex items-center gap-2">
+                                    <code id="privacy-url"
+                                        class="text-xs bg-white px-3 py-1.5 rounded-lg border border-gray-200 text-blue-600 font-mono truncate block flex-1">{{ request.scheme }}://{{ request.get_host }}/profile/privacy_policy/{{ user.get_email_prefix }}/</code>
+                                    <button type="button" onclick="copyPrivacyUrl()"
+                                        class="flex-shrink-0 text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">
+                                        Copy
+                                    </button>
+                                </div>
+                                <a href="/profile/privacy_policy/{{ user.get_email_prefix }}/" target="_blank"
+                                    class="inline-block mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                    View Privacy Policy →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="flex items-center space-x-4 pt-4">
                         <button type="submit"
                             class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
@@ -200,9 +244,12 @@
                             <p class="font-semibold text-red-800">Your previous KYC submission was rejected</p>
                             <p class="text-red-700 text-sm mt-1">🔰Please upload a clear image of your NID card or
                                 Passport and try again.</p>
-                            <p class="text-red-700 text-sm mt-1">🔰Make sure your profile picture and document photo are clear and show the same person for successful verification.</p>
-                             <p class="text-green-700 text-sm mt-1">🔰You profile must be completed to verify your identity. Please complete your profile.</p> 
-                             <p class="text-yellow-700 text-sm mt-1">🔰If something goes wrong, please contact our support team.</p>  
+                            <p class="text-red-700 text-sm mt-1">🔰Make sure your profile picture and document photo are
+                                clear and show the same person for successful verification.</p>
+                            <p class="text-green-700 text-sm mt-1">🔰You profile must be completed to verify your
+                                identity. Please complete your profile.</p>
+                            <p class="text-yellow-700 text-sm mt-1">🔰If something goes wrong, please contact our
+                                support team.</p>
                         </div>
                     </div>
                 </div>
@@ -251,6 +298,24 @@
 </div>
 
 <script>
+    // Copy privacy policy URL
+    function copyPrivacyUrl() {
+        const urlEl = document.getElementById('privacy-url');
+        if (urlEl) {
+            navigator.clipboard.writeText(urlEl.textContent.trim()).then(() => {
+                const btn = event.target.closest('button');
+                btn.textContent = 'Copied!';
+                btn.classList.add('bg-green-600');
+                btn.classList.remove('bg-blue-600');
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('bg-green-600');
+                    btn.classList.add('bg-blue-600');
+                }, 2000);
+            });
+        }
+    }
+
     // Image preview
     const fileInput = document.querySelector('input[name="profile_picture"]');
     if (fileInput) {

@@ -51,6 +51,7 @@ class UserProfile(models.Model):
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     mobile_number = models.CharField(max_length=20, blank=True)
     home_address = models.TextField(blank=True)
+    business_info = models.TextField(blank=True, help_text='Details about your business/Facebook page')
     
     # KYC Fields
     KYC_STATUS_CHOICES = (

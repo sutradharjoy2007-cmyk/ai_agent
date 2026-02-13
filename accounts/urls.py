@@ -8,6 +8,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('profile/', views.profile_view, name='profile'),
+    path('profile/privacy_policy/<str:email_prefix>/', views.privacy_policy_view, name='privacy_policy'),
 
     path('ai-agent/', views.ai_agent_view, name='ai_agent'),
 

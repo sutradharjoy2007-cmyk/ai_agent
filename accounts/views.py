@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm, AIAgentConfigForm, KYCUploadForm
 
-from .models import UserProfile, AIAgentConfig
+from .models import CustomUser, UserProfile, AIAgentConfig
 import pandas as pd
 import io
 import requests
@@ -162,10 +162,11 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             full_name = form.cleaned_data.get('full_name', '')
+            phone_number = form.cleaned_data.get('phone_number', '')
             user.first_name = full_name
             user.save()
             # Create associated profile and AI config
-            UserProfile.objects.create(user=user, name=full_name)
+            UserProfile.objects.create(user=user, name=full_name, mobile_number=phone_number)
             AIAgentConfig.objects.create(user=user)
             login(request, user)
             messages.success(request, 'Account created successfully!')
@@ -251,6 +252,33 @@ def profile_view(request):
         'form': form,
         'kyc_form': kyc_form,
         'profile': profile
+    })
+
+
+def privacy_policy_view(request, email_prefix):
+    """Public privacy policy page for a user based on their email prefix"""
+    try:
+        user = CustomUser.objects.get(email__startswith=email_prefix + '@')
+    except CustomUser.DoesNotExist:
+        try:
+            user = CustomUser.objects.get(email=email_prefix)
+        except CustomUser.DoesNotExist:
+            from django.http import Http404
+            raise Http404("Privacy policy page not found.")
+
+    try:
+        profile = UserProfile.objects.get(user=user)
+    except UserProfile.DoesNotExist:
+        from django.http import Http404
+        raise Http404("Privacy policy page not found.")
+
+    if not profile.business_info:
+        from django.http import Http404
+        raise Http404("Privacy policy page not found.")
+
+    return render(request, 'accounts/privacy_policy.html', {
+        'profile': profile,
+        'page_user': user,
     })
 
 
