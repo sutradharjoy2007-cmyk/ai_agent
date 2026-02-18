@@ -12,8 +12,8 @@
                 class="bg-slate-800 text-white pl-10 pr-4 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-blue-500 w-full md:w-64">
             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>{% if status_filter != 'all' %} <input type="hidden" name="status" value="{{ status_filter }}"> {% endif %}
         </form>
-        
-<!--thik ase-->
+
+        <!--thik ase-->
         <!-- Filter -->
         <div class="relative">
             <select onchange="window.location.href=this.value"
@@ -49,8 +49,9 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
                             {% if user.profile.profile_picture %}
-                            <a href="{% url 'admin_user_detail' user.pk %}"><img src="{{ user.profile.profile_picture.url }}" alt=""
-                                class="w-10 h-10 rounded-full mr-3 object-cover border-2 border-slate-600 group-hover:border-blue-500 transition-colors"></a>
+                            <a href="{% url 'admin_user_detail' user.pk %}"><img
+                                    src="{{ user.profile.profile_picture.url }}" alt=""
+                                    class="w-10 h-10 rounded-full mr-3 object-cover border-2 border-slate-600 group-hover:border-blue-500 transition-colors"></a>
                             {% else %}
                             <div
                                 class="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center mr-3 text-sm font-bold shadow-inner">
@@ -58,8 +59,12 @@
                             </div>
                             {% endif %}
                             <div>
-                                <a href="{% url 'admin_user_detail' user.pk %}"><div class="font-medium text-white group-hover:text-blue-400 transition-colors">{{user.profile.name|default:"No Name" }}</div></a>
-                                <div class="text-xs text-slate-400 max-w-[150px] truncate" title="{{ user.email }}">{{user.email }}</div>
+                                <a href="{% url 'admin_user_detail' user.pk %}">
+                                    <div class="font-medium text-white group-hover:text-blue-400 transition-colors">
+                                        {{user.profile.name|default:"No Name" }}</div>
+                                </a>
+                                <div class="text-xs text-slate-400 max-w-[150px] truncate" title="{{ user.email }}">
+                                    {{user.email }}</div>
                             </div>
                         </div>
                     </td>
@@ -120,5 +125,39 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="px-6 py-4 border-t border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-sm text-slate-400">
+            Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} users
+        </div>
+        <div class="flex items-center gap-1">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}"
+                class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm transition-colors">
+                <i data-lucide="chevron-left" class="w-4 h-4 inline"></i> Prev
+            </a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <span class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a
+                href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}"
+                class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm transition-colors">
+                {{ num }}</a>
+                {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}"
+                    class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm transition-colors">
+                    Next <i data-lucide="chevron-right" class="w-4 h-4 inline"></i>
+                </a>
+                {% endif %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

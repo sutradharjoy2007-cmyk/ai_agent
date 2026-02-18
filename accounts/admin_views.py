@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.utils import timezone
+from django.core.paginator import Paginator
 from .models import CustomUser, UserProfile, AIAgentConfig
 
 # Check if user is superuser
@@ -39,7 +40,7 @@ def admin_dashboard(request):
 @user_passes_test(is_superuser)
 def admin_user_list(request):
     """
-    List all users with search and filtering
+    List all users with search, filtering, and pagination
     """
     query = request.GET.get('q', '')
     status_filter = request.GET.get('status', 'all')
@@ -62,8 +63,14 @@ def admin_user_list(request):
     elif status_filter == 'pending':
         users = users.filter(profile__kyc_status='PENDING')
 
+    # Pagination — 20 users per page
+    paginator = Paginator(users, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'users': users,
+        'users': page_obj,
+        'page_obj': page_obj,
         'query': query,
         'status_filter': status_filter
     }
@@ -143,7 +150,7 @@ def admin_kyc_list(request):
 @user_passes_test(is_superuser)
 def admin_kyc_action(request):
     """
-    Handle KYC Approval/rejection
+    Handle KYC Approval/rejection with optional rejection reason
     """
     profile = None
     if request.method == 'POST':
@@ -154,12 +161,99 @@ def admin_kyc_action(request):
         
         if action == 'approve':
             profile.kyc_status = 'VERIFIED'
+            profile.kyc_rejection_reason = ''  # Clear any previous rejection reason
             profile.save()
             messages.success(request, f"KYC for {profile.user.email} has been APPROVED.")
             
         elif action == 'reject':
+            rejection_reason = request.POST.get('rejection_reason', '').strip()
             profile.kyc_status = 'REJECTED'
+            profile.kyc_rejection_reason = rejection_reason or 'Your KYC submission did not meet our requirements. Please re-submit with clear images.'
             profile.save()
             messages.warning(request, f"KYC for {profile.user.email} has been REJECTED.")
             
     return redirect('admin_kyc_list')
+
+
+@login_required
+@user_passes_test(is_superuser)
+def admin_subscription_list(request):
+    """
+    Subscription Management Page — view and manage all user subscriptions
+    """
+    now = timezone.now()
+    status_filter = request.GET.get('status', 'all')
+    query = request.GET.get('q', '')
+
+    profiles = UserProfile.objects.select_related('user').all().order_by('-subscription_expiry')
+
+    # Stats
+    total_active = UserProfile.objects.filter(subscription_expiry__gt=now).count()
+    expiring_soon = UserProfile.objects.filter(
+        subscription_expiry__gt=now,
+        subscription_expiry__lte=now + timezone.timedelta(days=7)
+    ).count()
+    total_expired = UserProfile.objects.filter(subscription_expiry__lte=now).count()
+    never_subscribed = UserProfile.objects.filter(subscription_expiry__isnull=True).count()
+
+    # Search
+    if query:
+        profiles = profiles.filter(
+            Q(user__email__icontains=query) |
+            Q(name__icontains=query) |
+            Q(mobile_number__icontains=query)
+        )
+
+    # Filter
+    if status_filter == 'active':
+        profiles = profiles.filter(subscription_expiry__gt=now)
+    elif status_filter == 'expired':
+        profiles = profiles.filter(subscription_expiry__lte=now)
+    elif status_filter == 'expiring_soon':
+        profiles = profiles.filter(
+            subscription_expiry__gt=now,
+            subscription_expiry__lte=now + timezone.timedelta(days=7)
+        )
+    elif status_filter == 'never':
+        profiles = profiles.filter(subscription_expiry__isnull=True)
+
+    # Pagination
+    paginator = Paginator(profiles, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Handle quick subscription extend from this page
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        days = int(request.POST.get('days', 0))
+        if user_id and days > 0:
+            target_profile = get_object_or_404(UserProfile, user__id=user_id)
+            if target_profile.subscription_expiry and target_profile.subscription_expiry > now:
+                # Extend from current expiry
+                target_profile.subscription_expiry = target_profile.subscription_expiry + timezone.timedelta(days=days)
+            else:
+                # Start fresh from now
+                target_profile.subscription_expiry = now + timezone.timedelta(days=days)
+            target_profile.package_name = f"{days} Days Package"
+            target_profile.save()
+
+            from .models import SubscriptionHistory
+            SubscriptionHistory.objects.create(
+                profile=target_profile,
+                package_name=f"{days} Days Package - Admin Assigned",
+                expiry_date=target_profile.subscription_expiry
+            )
+            messages.success(request, f"Subscription for {target_profile.user.email} extended by {days} days.")
+            return redirect(f"{request.path}?status={status_filter}&q={query}")
+
+    context = {
+        'profiles': page_obj,
+        'page_obj': page_obj,
+        'total_active': total_active,
+        'expiring_soon': expiring_soon,
+        'total_expired': total_expired,
+        'never_subscribed': never_subscribed,
+        'status_filter': status_filter,
+        'query': query,
+    }
+    return render(request, 'custom_admin/subscription_list.html', context)

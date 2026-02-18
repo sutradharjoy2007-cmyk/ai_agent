@@ -47,16 +47,21 @@
             <div class="flex items-center mb-4">
                 {% if profile.profile_picture %}
                 <a href="{% url 'admin_user_detail' profile.id %}"><img src="{{ profile.profile_picture.url }}" alt=""
-                    class="w-10 h-10 rounded-full mr-3 object-cover border border-slate-600"></a>
+                        class="w-10 h-10 rounded-full mr-3 object-cover border border-slate-600"></a>
                 {% else %}
                 <div>
-                    class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center mr-3 text-sm font-bold text-white">
+                    class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center mr-3 text-sm font-bold
+                    text-white">
                     {{ profile.user.email.0|upper }}
                 </div>
                 {% endif %}
                 <div>
-                   <a href="{% url 'admin_user_detail' profile.id %}"><h3 class="font-bold text-white truncate w-40">{{ profile.name|default:"No Name" }}</h3></a> 
-                    <a href="{% url 'admin_user_detail' profile.id %}"><p class="text-xs text-slate-400">{{ profile.user.email }}</p></a>
+                    <a href="{% url 'admin_user_detail' profile.id %}">
+                        <h3 class="font-bold text-white truncate w-40">{{ profile.name|default:"No Name" }}</h3>
+                    </a>
+                    <a href="{% url 'admin_user_detail' profile.id %}">
+                        <p class="text-xs text-slate-400">{{ profile.user.email }}</p>
+                    </a>
                 </div>
             </div>
 
@@ -72,16 +77,38 @@
                 </div>
             </div>
 
-            <form action="{% url 'admin_kyc_action' %}" method="post" class="mt-auto grid grid-cols-2 gap-3">
+            <form action="{% url 'admin_kyc_action' %}" method="post" class="mt-auto"
+                id="kyc-form-{{ profile.user.id }}">
                 {% csrf_token %}
                 <input type="hidden" name="user_id" value="{{ profile.user.id }}">
-                <button type="submit" name="action" value="approve"
-                    class="bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 py-2 rounded-lg font-medium transition-colors flex items-center justify-center">
-                    <i data-lucide="check" class="w-4 h-4 mr-2"></i> Approve
-                </button>
-                <button type="submit" name="action" value="reject"
-                    class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 py-2 rounded-lg font-medium transition-colors flex items-center justify-center">
-                    <i data-lucide="x" class="w-4 h-4 mr-2"></i> Reject
+                <input type="hidden" name="action" value="" id="kyc-action-{{ profile.user.id }}">
+
+                <!-- Rejection reason (hidden by default) -->
+                <div class="mb-3 hidden" id="reject-reason-{{ profile.user.id }}">
+                    <label class="block text-xs text-slate-400 mb-1">Rejection Reason</label>
+                    <textarea name="rejection_reason" rows="2" placeholder="e.g. Blurry image, wrong document..."
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 resize-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="submit"
+                        onclick="document.getElementById('kyc-action-{{ profile.user.id }}').value='approve'"
+                        class="bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 py-2 rounded-lg font-medium transition-colors flex items-center justify-center">
+                        <i data-lucide="check" class="w-4 h-4 mr-2"></i> Approve
+                    </button>
+                    <button type="button" onclick="showRejectReason('{{ profile.user.id }}')"
+                        id="reject-btn-{{ profile.user.id }}"
+                        class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 py-2 rounded-lg font-medium transition-colors flex items-center justify-center">
+                        <i data-lucide="x" class="w-4 h-4 mr-2"></i> Reject
+                    </button>
+                </div>
+
+                <!-- Confirm reject button (hidden by default) -->
+                <button type="submit"
+                    onclick="document.getElementById('kyc-action-{{ profile.user.id }}').value='reject'"
+                    id="confirm-reject-{{ profile.user.id }}"
+                    class="hidden w-full mt-2 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 mr-2"></i> Confirm Rejection
                 </button>
             </form>
         </div>
@@ -97,4 +124,20 @@
     <p class="text-slate-400">There are no pending KYC verification requests at the moment.</p>
 </div>
 {% endif %}
+
+<script>
+    function showRejectReason(userId) {
+        const reasonDiv = document.getElementById('reject-reason-' + userId);
+        const confirmBtn = document.getElementById('confirm-reject-' + userId);
+        const rejectBtn = document.getElementById('reject-btn-' + userId);
+
+        reasonDiv.classList.remove('hidden');
+        confirmBtn.classList.remove('hidden');
+        confirmBtn.classList.add('flex');
+        rejectBtn.classList.add('hidden');
+
+        // Re-render Lucide icons for the newly visible button
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+</script>
 {% endblock %}

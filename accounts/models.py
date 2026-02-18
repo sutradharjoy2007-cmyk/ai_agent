@@ -63,6 +63,7 @@ class UserProfile(models.Model):
     kyc_front_image = models.ImageField(upload_to='kyc_documents/front/', blank=True, null=True)
     kyc_back_image = models.ImageField(upload_to='kyc_documents/back/', blank=True, null=True)
     kyc_status = models.CharField(max_length=20, choices=KYC_STATUS_CHOICES, default='NONE')
+    kyc_rejection_reason = models.TextField(blank=True, help_text='Reason for KYC rejection (shown to user)')
     
     # Subscription fields
     subscription_expiry = models.DateTimeField(null=True, blank=True)
