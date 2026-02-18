@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse, Http404
 from django.contrib import messages
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm, AIAgentConfigForm, KYCUploadForm
 
@@ -168,9 +168,8 @@ def register_view(request):
             # Create associated profile and AI config
             UserProfile.objects.create(user=user, name=full_name, mobile_number=phone_number)
             AIAgentConfig.objects.create(user=user)
-            login(request, user)
-            messages.success(request, 'Account created successfully!')
-            return redirect('dashboard')
+            messages.success(request, 'Account created successfully! Please log in.')
+            return redirect('login')
     else:
         form = CustomUserCreationForm()
     
@@ -481,3 +480,35 @@ def subscription_expired(request):
     """Display subscription expired page"""
     return render(request, 'accounts/subscription_expired.html')
 
+
+
+def serve_protected_media(request, file_path):
+    """Serve KYC documents only to admin/superuser accounts.
+    Profile pictures remain publicly accessible via normal media URL.
+    """
+    import os
+    from django.conf import settings
+
+    # Build the full filesystem path and prevent path traversal
+    full_path = os.path.normpath(os.path.join(settings.MEDIA_ROOT, file_path))
+    media_root = os.path.normpath(str(settings.MEDIA_ROOT))
+
+    if not full_path.startswith(media_root):
+        raise Http404
+
+    if not os.path.isfile(full_path):
+        raise Http404
+
+    # Check if this is a KYC document
+    if file_path.startswith('kyc_documents/'):
+        # KYC docs: only admin or superuser
+        if not request.user.is_authenticated:
+            from django.contrib.auth.views import redirect_to_login
+            return redirect_to_login(request.get_full_path())
+        if not (request.user.is_staff or request.user.is_superuser):
+            raise Http404
+
+    # For profile_pictures and any other media, serve publicly (no auth check)
+    import mimetypes
+    content_type, _ = mimetypes.guess_type(full_path)
+    return FileResponse(open(full_path, 'rb'), content_type=content_type or 'application/octet-stream')

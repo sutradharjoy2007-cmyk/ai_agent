@@ -15,10 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
-from django.conf.urls.static import static
 from django.shortcuts import redirect
+from accounts.views import serve_protected_media
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,7 +26,7 @@ urlpatterns = [
     path('', include('accounts.urls')),
 ]
 
-# Serve media files in development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
+# Serve media files through protected view (KYC docs require admin, profile pics are public)
+urlpatterns += [
+    re_path(r'^media/(?P<file_path>.*)$', serve_protected_media, name='protected_media'),
+]
