@@ -166,7 +166,7 @@ JAZZMIN_SETTINGS = {
     # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
     "site_brand": "Page Pilot Admin",
     "copyright": "Page Pilot | FEBTECH | MetaSoul",
-    "show_ui_builder": True,
+    "show_ui_builder": False,
  
     }
 
@@ -180,5 +180,5 @@ EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'Page Pilot <joysutradharpc@gmail.com>'
 
 # Site info (used in email templates)
-SITE_URL = 'http://127.0.0.1:8000'
+SITE_URL = 'https://ai-agent-6ysx.onrender.com'
 SITE_NAME = 'Page Pilot'
