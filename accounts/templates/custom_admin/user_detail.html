@@ -100,7 +100,7 @@
                 <div class="text-sm text-slate-400">Expires: {{ profile.subscription_expiry|date:"M d, Y" }}</div>
                 {% else %}
                 <div class="text-red-400 font-bold text-lg mb-1">Expired</div>
-                <div class="text-sm text-slate-400">Expired on: {{ profile.subscription_expiry|date:"M d, Y"|default:"N/A" }}</div>
+                <div class="text-sm text-slate-400">Expired on: {{ profile.subscription_expiry|date:"M d,Y"|default:"N/A" }}</div>
                 {% endif %}
             </div>
 
@@ -180,6 +180,14 @@
                     <span class="text-xs text-slate-500 uppercase font-semibold block mb-1">Facebook Page ID</span>
                     <span class="text-white font-mono text-sm">{{ ai_config.facebook_page_id|default:"Not set" }}</span>
                 </div>
+                <div>
+                    <span class="text-xs text-slate-500 uppercase font-semibold block mb-1">Facebook Page API</span>
+                    <span class="text-white font-mono text-sm">{{ ai_config.facebook_page_api|default:"Not set" }}</span>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-500 uppercase font-semibold block mb-1">Block Post IDS</span>
+                    <span class="text-white font-mono text-sm">{{ ai_config.blocked_post_ids|default:"Not set" }}</span>
+                </div>
                 <div class="md:col-span-2">
                     <span class="text-xs text-slate-500 uppercase font-semibold block mb-1">System Prompt</span>
                     <div class="bg-slate-900 rounded-lg p-3 text-sm text-slate-300 font-mono max-h-32 overflow-y-auto">
@@ -193,15 +201,33 @@
         </div>
 
         <!-- KYC Document Preview -->
-        {% if profile.kyc_document %}
+        {% if profile.kyc_front_image or profile.kyc_back_image %}
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
             <h3 class="text-lg font-bold text-white mb-6 flex items-center">
                 <i data-lucide="file-check" class="w-5 h-5 mr-2 text-yellow-400"></i>
-                KYC Document
+                KYC Documents
             </h3>
-            <div class="rounded-lg overflow-hidden border border-slate-700">
-                <img src="{{ profile.kyc_document.url }}" alt="KYC Document"
-                    class="w-full object-contain max-h-96 bg-slate-900">
+
+            <div class="grid grid-cols-1 gap-4">
+                {% if profile.kyc_front_image %}
+                <div>
+                    <span class="text-xs text-slate-500 uppercase font-semibold block mb-2">Front Side</span>
+                    <div class="rounded-lg overflow-hidden border border-slate-700">
+                        <img src="{{ profile.kyc_front_image.url }}" alt="Front ID"
+                            class="w-full object-contain max-h-96 bg-slate-900">
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if profile.kyc_back_image %}
+                <div>
+                    <span class="text-xs text-slate-500 uppercase font-semibold block mb-2">Back Side</span>
+                    <div class="rounded-lg overflow-hidden border border-slate-700">
+                        <img src="{{ profile.kyc_back_image.url }}" alt="Back ID"
+                            class="w-full object-contain max-h-96 bg-slate-900">
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             {% if profile.kyc_status == 'PENDING' %}

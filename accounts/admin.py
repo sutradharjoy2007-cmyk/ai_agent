@@ -36,25 +36,36 @@ class SubscriptionHistoryInline(admin.TabularInline):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'kyc_status', 'kyc_document_link', 'subscription_expiry', 'package_name']
+    list_display = ['user', 'kyc_status', 'kyc_document_links', 'subscription_expiry', 'package_name']
     list_filter = ['kyc_status', 'package_name']
     actions = ['approve_kyc', 'reject_kyc', 'assign_7_days', 'assign_15_days', 'assign_30_days']
-    readonly_fields = ['kyc_document_preview']
+    readonly_fields = ['kyc_front_preview', 'kyc_back_preview']
     inlines = [SubscriptionHistoryInline]
     
-    def kyc_document_link(self, obj):
+    def kyc_document_links(self, obj):
         from django.utils.html import format_html
-        if obj.kyc_document:
-            return format_html('<a href="{}" target="_blank">View Document</a>', obj.kyc_document.url)
-        return "No document"
-    kyc_document_link.short_description = "KYC Document"
+        from django.utils.safestring import mark_safe
+        links = []
+        if obj.kyc_front_image:
+            links.append(format_html('<a href="{}" target="_blank">Front</a>', obj.kyc_front_image.url))
+        if obj.kyc_back_image:
+            links.append(format_html('<a href="{}" target="_blank">Back</a>', obj.kyc_back_image.url))
+        return mark_safe(" | ".join(links)) if links else "No documents"
+    kyc_document_links.short_description = "KYC Documents"
     
-    def kyc_document_preview(self, obj):
+    def kyc_front_preview(self, obj):
         from django.utils.html import format_html
-        if obj.kyc_document:
-            return format_html('<img src="{}" style="max-width:400px; max-height:300px;" />', obj.kyc_document.url)
-        return "No document uploaded"
-    kyc_document_preview.short_description = "KYC Document Preview"
+        if obj.kyc_front_image:
+            return format_html('<img src="{}" style="max-width:300px; max-height:200px;" />', obj.kyc_front_image.url)
+        return "No front image uploaded"
+    kyc_front_preview.short_description = "Front ID Preview"
+
+    def kyc_back_preview(self, obj):
+        from django.utils.html import format_html
+        if obj.kyc_back_image:
+            return format_html('<img src="{}" style="max-width:300px; max-height:200px;" />', obj.kyc_back_image.url)
+        return "No back image uploaded"
+    kyc_back_preview.short_description = "Back ID Preview"
     
     @admin.action(description="✅ Approve KYC Verification")
     def approve_kyc(self, request, queryset):

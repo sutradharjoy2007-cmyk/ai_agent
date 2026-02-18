@@ -48,8 +48,8 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
                             {% if user.profile.profile_picture %}
-                            <img src="{{ user.profile.profile_picture.url }}" alt=""
-                                class="w-10 h-10 rounded-full mr-3 object-cover border-2 border-slate-600 group-hover:border-blue-500 transition-colors">
+                            <a href="{% url 'admin_user_detail' user.pk %}"><img src="{{ user.profile.profile_picture.url }}" alt=""
+                                class="w-10 h-10 rounded-full mr-3 object-cover border-2 border-slate-600 group-hover:border-blue-500 transition-colors"></a>
                             {% else %}
                             <div
                                 class="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center mr-3 text-sm font-bold shadow-inner">
@@ -57,7 +57,7 @@
                             </div>
                             {% endif %}
                             <div>
-                                <div class="font-medium text-white group-hover:text-blue-400 transition-colors">{{user.profile.name|default:"No Name" }}</div>
+                                <a href="{% url 'admin_user_detail' user.pk %}"><div class="font-medium text-white group-hover:text-blue-400 transition-colors">{{user.profile.name|default:"No Name" }}</div></a>
                                 <div class="text-xs text-slate-400 max-w-[150px] truncate" title="{{ user.email }}">{{user.email }}</div>
                             </div>
                         </div>

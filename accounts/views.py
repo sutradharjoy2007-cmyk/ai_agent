@@ -228,6 +228,10 @@ def profile_view(request):
         if 'kyc_submit' in request.POST:
             # Handle KYC document upload
             kyc_form = KYCUploadForm(request.POST, request.FILES, instance=profile)
+            if not profile.is_profile_complete():
+                messages.error(request, 'Please complete your profile information before submitting KYC.')
+                return redirect('profile')
+
             if kyc_form.is_valid():
                 kyc_profile = kyc_form.save(commit=False)
                 kyc_profile.kyc_status = 'PENDING'

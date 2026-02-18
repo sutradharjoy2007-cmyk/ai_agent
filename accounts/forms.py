@@ -100,9 +100,13 @@ class KYCUploadForm(forms.ModelForm):
     """Form for KYC document upload"""
     class Meta:
         model = UserProfile
-        fields = ['kyc_document']
+        fields = ['kyc_front_image', 'kyc_back_image']
         widgets = {
-            'kyc_document': forms.FileInput(attrs={
+            'kyc_front_image': forms.FileInput(attrs={
+                'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200',
+                'accept': 'image/*'
+            }),
+            'kyc_back_image': forms.FileInput(attrs={
                 'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200',
                 'accept': 'image/*'
             })

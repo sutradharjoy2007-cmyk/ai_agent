@@ -60,7 +60,8 @@ class UserProfile(models.Model):
         ('VERIFIED', 'Verified'),
         ('REJECTED', 'Rejected'),
     )
-    kyc_document = models.ImageField(upload_to='kyc_documents/', blank=True, null=True)
+    kyc_front_image = models.ImageField(upload_to='kyc_documents/front/', blank=True, null=True)
+    kyc_back_image = models.ImageField(upload_to='kyc_documents/back/', blank=True, null=True)
     kyc_status = models.CharField(max_length=20, choices=KYC_STATUS_CHOICES, default='NONE')
     
     # Subscription fields
@@ -69,6 +70,11 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return f"{self.user.email}'s profile"
+
+    def is_profile_complete(self):
+        """Check if essential profile fields are filled"""
+        required_fields = [self.name, self.mobile_number, self.home_address, self.business_info, self.profile_picture]
+        return all(field for field in required_fields)
     
     def is_subscription_active(self):
         """Check if subscription is active"""

@@ -242,11 +242,11 @@
                         </svg>
                         <div>
                             <p class="font-semibold text-red-800">Your previous KYC submission was rejected</p>
-                            <p class="text-red-700 text-sm mt-1">🔰Please upload a clear image of your NID card or
-                                Passport and try again.</p>
+                            <p class="text-red-700 text-sm mt-1">🔰Please upload clear images of your NID card or
+                                Passport (Front and Back) and try again.</p>
                             <p class="text-red-700 text-sm mt-1">🔰Make sure your profile picture and document photo are
                                 clear and show the same person for successful verification.</p>
-                            <p class="text-green-700 text-sm mt-1">🔰You profile must be completed to verify your
+                            <p class="text-green-700 text-sm mt-1">🔰Your profile must be completed to verify your
                                 identity. Please complete your profile.</p>
                             <p class="text-yellow-700 text-sm mt-1">🔰If something goes wrong, please contact our
                                 support team.</p>
@@ -264,25 +264,57 @@
                         </svg>
                         <div class="text-sm text-blue-800">
                             <p class="font-semibold mb-1">KYC Verification Required</p>
-                            <p>To use our AI Agent services, please submit a clear image of your <strong>NID
-                                    Card</strong> or <strong>Passport</strong> for identity verification.</p>
+                            <p>To use our AI Agent services, please submit clear images of your <strong>NID
+                                    Card</strong> or <strong>Passport</strong> (both Front and Back sides) for identity
+                                verification.</p>
                         </div>
                     </div>
                 </div>
 
+                {% if not profile.is_profile_complete %}
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                    <div class="flex items-start space-x-3">
+                        <svg class="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z">
+                            </path>
+                        </svg>
+                        <div class="text-sm text-amber-800">
+                            <p class="font-semibold mb-1">Profile Incomplete</p>
+                            <p>Please complete your profile information (Name, Mobile, Address, Business Info, Profile
+                                Picture) above before submitting KYC.</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
                 <form method="post" enctype="multipart/form-data" class="space-y-4">
                     {% csrf_token %}
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Upload NID Card / Passport</label>
-                        {{ kyc_form.kyc_document }}
-                        {% if kyc_form.kyc_document.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ kyc_form.kyc_document.errors.0 }}</p>
-                        {% endif %}
-                        <p class="mt-2 text-xs text-gray-500">Upload a clear photo of your NID card or Passport (JPG,
-                            PNG)</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Front Side of ID</label>
+                            {{ kyc_form.kyc_front_image }}
+                            {% if kyc_form.kyc_front_image.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ kyc_form.kyc_front_image.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Back Side of ID</label>
+                            {{ kyc_form.kyc_back_image }}
+                            {% if kyc_form.kyc_back_image.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ kyc_form.kyc_back_image.errors.0 }}</p>
+                            {% endif %}
+                        </div>
                     </div>
-                    <button type="submit" name="kyc_submit" value="1"
-                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+                    <p class="mt-2 text-xs text-gray-500">Upload clear photos of your NID card or Passport (JPG, PNG)
+                    </p>
+
+                    <button type="submit" name="kyc_submit" value="1" {% if not profile.is_profile_complete %} disabled
+                        class="w-full bg-gray-400 cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center space-x-2"
+                        {% else %}
+                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+                        {% endif %}>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
