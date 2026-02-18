@@ -169,3 +169,16 @@ JAZZMIN_SETTINGS = {
     "show_ui_builder": True,
  
     }
+
+# ─── Email Configuration ───
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'joysutradharpc@gmail.com'
+EMAIL_HOST_PASSWORD = 'iatu jnzr agxc juvh'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'Page Pilot <joysutradharpc@gmail.com>'
+
+# Site info (used in email templates)
+SITE_URL = 'http://127.0.0.1:8000'
+SITE_NAME = 'Page Pilot'

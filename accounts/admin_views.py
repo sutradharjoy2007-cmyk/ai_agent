@@ -163,6 +163,8 @@ def admin_kyc_action(request):
             profile.kyc_status = 'VERIFIED'
             profile.kyc_rejection_reason = ''  # Clear any previous rejection reason
             profile.save()
+            from .emails import send_kyc_approved_email
+            send_kyc_approved_email(profile)
             messages.success(request, f"KYC for {profile.user.email} has been APPROVED.")
             
         elif action == 'reject':
@@ -170,6 +172,8 @@ def admin_kyc_action(request):
             profile.kyc_status = 'REJECTED'
             profile.kyc_rejection_reason = rejection_reason or 'Your KYC submission did not meet our requirements. Please re-submit with clear images.'
             profile.save()
+            from .emails import send_kyc_rejected_email
+            send_kyc_rejected_email(profile)
             messages.warning(request, f"KYC for {profile.user.email} has been REJECTED.")
             
     return redirect('admin_kyc_list')

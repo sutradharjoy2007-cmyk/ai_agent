@@ -168,6 +168,9 @@ def register_view(request):
             # Create associated profile and AI config
             UserProfile.objects.create(user=user, name=full_name, mobile_number=phone_number)
             AIAgentConfig.objects.create(user=user)
+            # Send welcome email
+            from .emails import send_welcome_email
+            send_welcome_email(user)
             messages.success(request, 'Account created successfully! Please log in.')
             return redirect('login')
     else:
