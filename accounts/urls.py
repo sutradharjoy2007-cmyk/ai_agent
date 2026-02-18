@@ -1,8 +1,16 @@
 from django.urls import path
 from . import views
+from . import admin_views
 from .api_views import api_get_user_config
 
 urlpatterns = [
+    # Custom Admin URLs
+    path('portal/admin/', admin_views.admin_dashboard, name='admin_dashboard'),
+    path('portal/admin/users/', admin_views.admin_user_list, name='admin_user_list'),
+    path('portal/admin/users/<int:user_id>/', admin_views.admin_user_detail, name='admin_user_detail'),
+    path('portal/admin/kyc/', admin_views.admin_kyc_list, name='admin_kyc_list'),
+    path('portal/admin/kyc/action/', admin_views.admin_kyc_action, name='admin_kyc_action'),
+
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
