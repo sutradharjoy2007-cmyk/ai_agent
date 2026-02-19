@@ -29,7 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*', 'onrender.com']
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://ai-agent-6ysx.onrender.com",
+    "https://pagepilot-btwt.onrender.com",
 ]
 
 CSRF_COOKIE_SECURE = True
@@ -180,5 +180,5 @@ EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'Page Pilot <joysutradharpc@gmail.com>'
 
 # Site info (used in email templates)
-SITE_URL = 'https://ai-agent-6ysx.onrender.com'
+SITE_URL = 'https://pagepilot-btwt.onrender.com'
 SITE_NAME = 'Page Pilot'
